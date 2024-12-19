@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { MdOutlineMailOutline } from "react-icons/md";
 import { RiLock2Fill } from "react-icons/ri";
 import { Link, Navigate } from "react-router-dom";
@@ -16,9 +16,17 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!email || !password || !role) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+
     try {
+      const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
+    
       const { data } = await axios.post(
-        "http://localhost:4000/api/v1/user/login",
+        `${baseURL}/api/v1/user/login`,
         { email, password, role },
         {
           headers: {
@@ -27,18 +35,31 @@ const Login = () => {
           withCredentials: true,
         }
       );
+    
       toast.success(data.message);
       setEmail("");
       setPassword("");
       setRole("");
       setIsAuthorized(true);
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Error:", error); // Log the entire error object for debugging
+    
+      if (error.response) {
+        // Handle errors with a valid response object
+        toast.error(error.response.data.message || "An error occurred.");
+      } else if (error.request) {
+        // Handle network errors (no response received)
+        console.error("Network error:", error.request);
+        toast.error("Network error. Please check your connection.");
+      } else {
+        // Handle other errors
+        toast.error(error.message || "Something went wrong.");
+      }
     }
   };
 
-  if(isAuthorized){
-    return <Navigate to={'/'}/>
+  if (isAuthorized) {
+    return <Navigate to={"/"} />;
   }
 
   return (

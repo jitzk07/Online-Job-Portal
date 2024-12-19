@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Context } from "../../main";
@@ -7,19 +7,25 @@ const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const { isAuthorized } = useContext(Context);
   const navigateTo = useNavigate();
+
   useEffect(() => {
-    try {
-      axios
-        .get("http://localhost:4000/api/v1/job/getall", {
+    const fetchJobs = async () => {
+      try {
+        const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
+
+        const { data } = await axios.get(`${baseURL}/api/v1/job/getall`, {
           withCredentials: true,
-        })
-        .then((res) => {
-          setJobs(res.data);
         });
-    } catch (error) {
-      console.log(error);
-    }
+
+        setJobs(data);
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+      }
+    };
+
+    fetchJobs();
   }, []);
+
   if (!isAuthorized) {
     navigateTo("/");
   }

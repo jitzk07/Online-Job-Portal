@@ -1,9 +1,9 @@
-
 import axios from "axios";
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context } from "../../main";
+
 const Application = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,18 +13,19 @@ const Application = () => {
   const [resume, setResume] = useState(null);
 
   const { isAuthorized, user } = useContext(Context);
-
   const navigateTo = useNavigate();
 
   // Function to handle file input changes
   const handleFileChange = (event) => {
-    const resume = event.target.files[0];
-    setResume(resume);
+    const selectedResume = event.target.files[0];
+    setResume(selectedResume);
   };
 
   const { id } = useParams();
+
   const handleApplication = async (e) => {
     e.preventDefault();
+
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
@@ -35,8 +36,11 @@ const Application = () => {
     formData.append("jobId", id);
 
     try {
+      // Use Vite's environment variable for the base URL
+      const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
+
       const { data } = await axios.post(
-        "http://localhost:4000/api/v1/application/post",
+        `${baseURL}/api/v1/application/post`,
         formData,
         {
           withCredentials: true,
@@ -45,19 +49,31 @@ const Application = () => {
           },
         }
       );
+
+      // Clear form inputs on success
       setName("");
       setEmail("");
       setCoverLetter("");
       setPhone("");
       setAddress("");
-      setResume("");
+      setResume(null);
+
       toast.success(data.message);
       navigateTo("/job/getall");
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Error:", error); // Debugging: Log the entire error object
+
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 
+  // Redirect unauthorized users or employers
   if (!isAuthorized || (user && user.role === "Employer")) {
     navigateTo("/");
   }
@@ -92,7 +108,7 @@ const Application = () => {
             onChange={(e) => setAddress(e.target.value)}
           />
           <textarea
-            placeholder="CoverLetter..."
+            placeholder="Cover Letter..."
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
           />

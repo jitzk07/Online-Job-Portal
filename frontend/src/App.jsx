@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import React, { useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import "./App.css";
 import { Context } from "./main";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -20,23 +19,26 @@ import MyJobs from "./components/Job/MyJobs";
 
 const App = () => {
   const { isAuthorized, setIsAuthorized, setUser } = useContext(Context);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:4000/api/v1/user/getuser",
-          {
-            withCredentials: true,
-          }
-        );
+        const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
+
+        const response = await axios.get(`${baseURL}/api/v1/user/getuser`, {
+          withCredentials: true,
+        });
+
         setUser(response.data.user);
         setIsAuthorized(true);
       } catch (error) {
+        console.error("Error fetching user:", error);
         setIsAuthorized(false);
       }
     };
+
     fetchUser();
-  }, [isAuthorized]);
+  }, [isAuthorized, setIsAuthorized, setUser]);
 
   return (
     <>

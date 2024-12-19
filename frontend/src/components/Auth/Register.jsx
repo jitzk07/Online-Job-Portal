@@ -1,4 +1,5 @@
-import React, { useContext, useState } from "react";
+/* eslint-disable no-undef */
+import { useContext, useState } from "react";
 import { FaRegUser } from "react-icons/fa";
 import { MdOutlineMailOutline } from "react-icons/md";
 import { RiLock2Fill } from "react-icons/ri";
@@ -16,13 +17,27 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
 
-  const { isAuthorized, setIsAuthorized, user, setUser } = useContext(Context);
+  const { isAuthorized, setIsAuthorized } = useContext(Context);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!name || !email || !phone || !password || !role) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+
     try {
+      // Use the environment variable
+      const baseURL = import.meta.env.VITE_BASE_URL;
+
       const { data } = await axios.post(
-        "http://localhost:4000/api/v1/user/register",
+        `${baseURL}/api/v1/user/register`,
         { name, phone, email, role, password },
         {
           headers: {
@@ -31,6 +46,7 @@ const Register = () => {
           withCredentials: true,
         }
       );
+
       toast.success(data.message);
       setName("");
       setEmail("");
@@ -39,14 +55,20 @@ const Register = () => {
       setRole("");
       setIsAuthorized(true);
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Error:", error); // Debugging: Log the entire error object
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
     }
   };
 
-  if(isAuthorized){
-    return <Navigate to={'/'}/>
+  if (isAuthorized) {
+    return <Navigate to={'/'} />;
   }
-
 
   return (
     <>

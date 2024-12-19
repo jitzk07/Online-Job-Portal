@@ -1,8 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Context } from "../../main";
+
 const JobDetails = () => {
   const { id } = useParams();
   const [job, setJob] = useState({});
@@ -11,17 +14,21 @@ const JobDetails = () => {
   const { isAuthorized, user } = useContext(Context);
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:4000/api/v1/job/${id}`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        setJob(res.data.job);
-      })
-      .catch((error) => {
+    const fetchJobDetails = async () => {
+      try {
+        const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
+        const { data } = await axios.get(`${baseURL}/api/v1/job/${id}`, {
+          withCredentials: true,
+        });
+        setJob(data.job);
+      } catch (error) {
+        console.error("Error fetching job details:", error);
         navigateTo("/notfound");
-      });
-  }, []);
+      }
+    };
+
+    fetchJobDetails();
+  }, [id, navigateTo]);
 
   if (!isAuthorized) {
     navigateTo("/login");
@@ -33,7 +40,7 @@ const JobDetails = () => {
         <h3>Job Details</h3>
         <div className="banner">
           <p>
-            Title: <span> {job.title}</span>
+            Title: <span>{job.title}</span>
           </p>
           <p>
             Category: <span>{job.category}</span>

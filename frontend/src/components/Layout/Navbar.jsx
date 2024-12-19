@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Context } from "../../main";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -12,17 +12,19 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:4000/api/v1/user/logout",
-        {
-          withCredentials: true,
-        }
-      );
+      const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
+
+      const response = await axios.get(`${baseURL}/api/v1/user/logout`, {
+        withCredentials: true,
+      });
+
       toast.success(response.data.message);
       setIsAuthorized(false);
       navigateTo("/login");
     } catch (error) {
-      toast.error(error.response.data.message), setIsAuthorized(true);
+      console.error("Error during logout:", error);
+      toast.error(error.response?.data?.message || "Something went wrong.");
+      setIsAuthorized(true);
     }
   };
 
@@ -63,10 +65,7 @@ const Navbar = () => {
                 </Link>
               </li>
             </>
-          ) : (
-            <></>
-          )}
-
+          ) : null}
           <button onClick={handleLogout}>LOGOUT</button>
         </ul>
         <div className="hamburger">
